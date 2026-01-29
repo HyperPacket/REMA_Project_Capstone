@@ -48,6 +48,6 @@ The project uses **PostgreSQL** for data persistence.
 
 This project was built by:
 
-- **Zaid**
-- **[Contributor Name 2]**
-- **[Contributor Name 3]**
+- [HyperPacket](https://github.com/HyperPacket)
+- [Wessam Sweiss](https://github.com/wessamsweiss)
+- [ZKI](https://github.com/Zaki445566)
