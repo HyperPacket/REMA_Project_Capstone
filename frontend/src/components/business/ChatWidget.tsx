@@ -97,11 +97,7 @@ export const ChatWidget = ({ context = 'global', propertyContext, initialMessage
         }
     }, [initialMessage]);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
 
-    useEffect(scrollToBottom, [messages, isTyping]);
 
     const handleSend = async (e?: React.FormEvent, msgText?: string) => {
         if (e) e.preventDefault();
@@ -121,12 +117,19 @@ export const ChatWidget = ({ context = 'global', propertyContext, initialMessage
         setIsTyping(true);
 
         try {
+            // Build conversation history for context
+            const history = messages.map(msg => ({
+                role: msg.sender === 'user' ? 'user' : 'assistant',
+                content: msg.content
+            }));
+
             // Call Backend Service
             const response = await sendChatMessage({
                 message: textToSend,
                 context: context,
                 propertyContext: propertyContext,
-                propertyId: propertyContext?.id
+                propertyId: propertyContext?.id,
+                history: history
             });
 
             // Add Bot Response
@@ -162,7 +165,7 @@ export const ChatWidget = ({ context = 'global', propertyContext, initialMessage
             `}</style>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 pb-32">
+            <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 pb-40" style={{ scrollBehavior: 'auto' }}>
                 {messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full min-h-[50vh] text-center space-y-8">
                         {/* BIG LOGO with Hover Effect */}
@@ -243,30 +246,32 @@ export const ChatWidget = ({ context = 'global', propertyContext, initialMessage
                 )}
             </div>
 
-            {/* Sticky Input Area */}
-            <div className="sticky bottom-0 w-full p-4 md:p-6 bg-gradient-to-t from-neutral-50 via-neutral-50 to-transparent">
-                <form
-                    onSubmit={(e) => handleSend(e)}
-                    className="relative max-w-3xl mx-auto bg-white rounded-full shadow-lg border border-gray-100 flex items-center transition-shadow hover:shadow-xl focus-within:ring-2 focus-within:ring-primary/20"
-                >
-                    <input
-                        type="text"
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder={placeholder}
-                        className="flex-1 pl-6 pr-14 py-4 bg-transparent border-none rounded-full focus:outline-none text-gray-800 placeholder-gray-400"
-                    />
-                    <button
-                        type="submit"
-                        disabled={!input.trim() || isTyping}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-primary text-white rounded-full hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 shadow-sm"
+            {/* Fixed Input Area at Bottom */}
+            <div className="absolute bottom-0 left-0 right-0 w-full p-4 md:p-6 bg-gradient-to-t from-neutral-50 via-neutral-50 to-transparent pointer-events-none">
+                <div className="pointer-events-auto">
+                    <form
+                        onSubmit={(e) => handleSend(e)}
+                        className="relative max-w-3xl mx-auto bg-white rounded-full shadow-lg border border-gray-100 flex items-center transition-shadow hover:shadow-xl focus-within:ring-2 focus-within:ring-primary/20"
                     >
-                        <Send size={18} />
-                    </button>
-                </form>
-                <p className="text-center text-xs text-gray-400 mt-2">
-                    REMA can make mistakes. Please verify important information.
-                </p>
+                        <input
+                            type="text"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            placeholder={placeholder}
+                            className="flex-1 pl-6 pr-14 py-4 bg-transparent border-none rounded-full focus:outline-none text-gray-800 placeholder-gray-400"
+                        />
+                        <button
+                            type="submit"
+                            disabled={!input.trim() || isTyping}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-primary text-white rounded-full hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 shadow-sm"
+                        >
+                            <Send size={18} />
+                        </button>
+                    </form>
+                    <p className="text-center text-xs text-gray-400 mt-2">
+                        REMA can make mistakes. Please verify important information.
+                    </p>
+                </div>
             </div>
         </div>
     );
